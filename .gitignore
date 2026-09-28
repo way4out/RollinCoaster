@@ -1,0 +1,23 @@
+# RollinCoaster
+
+A public-facing interactive park experience for 4out Rollin Mega-Park, built as a modern React + Vite web app.
+
+## Features
+- Base token brand layer for ROLLIN and support assets
+- Community plaza with click-to-walk avatar movement
+- Broadcast chat and attendee roster
+- Interactive attendee comms card with private messaging, voice call UI, and tip flow
+- Coaster cockpit simulation with speed, thrill, and audio meter panel
+- Wallet-ready economy interactions for gate admission and ride launch
+
+## Quick start
+
+npm install
+npm run dev
+
+## Build
+
+npm run build
+
+## Notes
+This app is designed as a high-retention public-facing prototype with a strong visual identity and polished interaction layer for the RollinCoaster concept.
