@@ -15,10 +15,10 @@ const supportTokens = [
 ];
 
 const attendees = [
-  { id: 1, name: 'Luna Drift', status: 'Live in VIP', color: '#7ee7d6', vibe: 'Sprint coach', hat: 'gold', badge: 'Pro rider' },
-  { id: 2, name: 'Milo Pike', status: 'Booking arcade pass', color: '#ff7ce5', vibe: 'Arcade scorer', hat: 'pink', badge: 'Combo king' },
-  { id: 3, name: 'Nova Rook', status: 'Chasing launch cam', color: '#7ab8ff', vibe: 'Coaster spotter', hat: 'blue', badge: 'Camera crew' },
-  { id: 4, name: 'Sage Vale', status: 'Pacing the plaza loop', color: '#f2d166', vibe: 'Night market host', hat: 'amber', badge: 'VIP host' },
+  { id: 1, name: 'Luna Drift', status: 'Live in VIP', color: '#7ee7d6', vibe: 'Sprint coach', badge: 'Pro rider' },
+  { id: 2, name: 'Milo Pike', status: 'Booking arcade pass', color: '#ff7ce5', vibe: 'Arcade scorer', badge: 'Combo king' },
+  { id: 3, name: 'Nova Rook', status: 'Chasing launch cam', color: '#7ab8ff', vibe: 'Coaster spotter', badge: 'Camera crew' },
+  { id: 4, name: 'Sage Vale', status: 'Pacing the plaza loop', color: '#f2d166', vibe: 'Night market host', badge: 'VIP host' },
 ];
 
 const initialMessages = [
@@ -35,8 +35,8 @@ const initialThread = [
 ];
 
 const zoneData = [
-  { key: 'gate', label: 'Coaster Boarding Gate', x: 16, y: 22, w: 36, h: 28 },
-  { key: 'arcade', label: 'Carnival Arcade', x: 56, y: 18, w: 30, h: 28 },
+  { key: 'gate', label: 'Coaster Boarding Gate', x: 18, y: 20, w: 30, h: 26 },
+  { key: 'arcade', label: 'Carnival Arcade', x: 58, y: 18, w: 28, h: 26 },
   { key: 'vip', label: 'VIP Lounge', x: 52, y: 58, w: 34, h: 24 },
 ];
 
@@ -73,6 +73,32 @@ const defaultTokenBalances = {
   blzet: 7,
 };
 
+const defaultStreak = {
+  days: 6,
+  reward: 'VIP lounge access + 150 rollin',
+};
+
+const leaderboard = [
+  { name: 'Luna Drift', score: 9420 },
+  { name: 'Milo Pike', score: 9010 },
+  { name: 'Nova Rook', score: 8840 },
+  { name: 'Sage Vale', score: 8200 },
+  { name: 'You', score: 7880 },
+];
+
+const eventSchedule = [
+  { time: '18:30', title: 'Neon Drop Rush', tag: 'Limited run' },
+  { time: '19:15', title: 'Arcade Combo Bash', tag: 'High score' },
+  { time: '20:00', title: 'VIP Radio Lounge', tag: 'Exclusive' },
+  { time: '21:30', title: 'Midnight Gravity Jump', tag: 'Elite' },
+];
+
+const rewards = [
+  { title: 'Ride streak', value: '+25 rollin', status: 'Ready' },
+  { title: 'VIP lounge', value: 'Unlocked', status: 'Live' },
+  { title: 'Arcade boost', value: '+15% combo', status: 'Claimed' },
+];
+
 const formatShortAddress = (value) => `${value.slice(0, 6)}...${value.slice(-4)}`;
 
 function App() {
@@ -96,6 +122,7 @@ function App() {
   const [handsUp, setHandsUp] = useState(true);
   const [parkPulse, setParkPulse] = useState('Boarding lane open');
   const [selectedTicket, setSelectedTicket] = useState('gate');
+  const [streak, setStreak] = useState(defaultStreak);
 
   useEffect(() => {
     localStorage.setItem('rollin-wallet', String(walletConnected));
@@ -108,22 +135,20 @@ function App() {
   useEffect(() => {
     const timer = setInterval(() => {
       setTicker((prev) => {
-        const next = prev >= 144 ? 86 : prev + 1.9;
+        const next = prev >= 144 ? 86 : prev + 1.8;
         return Number(next.toFixed(1));
       });
-      setGust((prev) => (prev >= 96 ? 54 : prev + 3.3));
+      setGust((prev) => (prev >= 96 ? 54 : prev + 3.1));
       setMessages((prev) => {
         const rotation = [
           'The reward loop is melting into the night.',
           'VIP lounge just dropped a limited run.',
           'Arcade combo leaderboards are heating up.',
           'Boarding gate is flowing faster than expected.',
+          'Gravity run is open for elite riders.',
         ];
         const line = rotation[Math.floor(Math.random() * rotation.length)];
-        return [
-          ...prev.slice(-3),
-          { id: Date.now(), user: 'Park Bot', text: line, type: 'speaker' },
-        ];
+        return [...prev.slice(-3), { id: Date.now(), user: 'Park Bot', text: line, type: 'speaker' }];
       });
     }, 2200);
     return () => clearInterval(timer);
@@ -184,6 +209,11 @@ function App() {
     setParkPulse(`50 rollin tip sent to ${selectedAttendee.name}`);
   };
 
+  const claimReward = () => {
+    setStreak((prev) => ({ ...prev, reward: 'Reward claimed: 150 rollin + lounge boost' }));
+    setTokenBalances((prev) => ({ ...prev, rollin: prev.rollin + 150 }));
+  };
+
   const pulseBars = [42, 68, 84, 52, 92, 62, 78, 58, 88, 54, 60, 72];
 
   return (
@@ -200,7 +230,7 @@ function App() {
         <nav className="nav-links">
           <a href="#plaza">Plaza</a>
           <a href="#tickets">Tickets</a>
-          <a href="#tokens">Base Tokens</a>
+          <a href="#rewards">Rewards</a>
           <a href="#coaster">Coaster</a>
         </nav>
 
@@ -443,6 +473,66 @@ function App() {
               </div>
 
               <button className="tip-button" onClick={sendTip}>Peer tip 50 rollin to {selectedAttendee.name}</button>
+            </div>
+          </div>
+        </section>
+
+        <section className="rewards-section" id="rewards">
+          <div className="section-head">
+            <div>
+              <span className="eyebrow">Retention loop</span>
+              <h3>Rider progression</h3>
+            </div>
+          </div>
+
+          <div className="rewards-grid">
+            <div className="reward-card streak-card">
+              <div className="mini-label">Daily streak</div>
+              <div className="streak-number">{streak.days} days</div>
+              <p>{streak.reward}</p>
+              <button className="primary-button" onClick={claimReward}>Claim reward</button>
+            </div>
+
+            <div className="reward-card">
+              <div className="mini-label">Leaderboard</div>
+              <div className="leaderboard-list">
+                {leaderboard.map((entry, index) => (
+                  <div key={entry.name} className="leader-row">
+                    <span>#{index + 1} {entry.name}</span>
+                    <strong>{entry.score}</strong>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="reward-card">
+              <div className="mini-label">Event schedule</div>
+              <div className="event-list">
+                {eventSchedule.map((event) => (
+                  <div key={event.title} className="event-row">
+                    <span>{event.time}</span>
+                    <div>
+                      <strong>{event.title}</strong>
+                      <small>{event.tag}</small>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="reward-card">
+              <div className="mini-label">Reward vault</div>
+              <div className="reward-list">
+                {rewards.map((reward) => (
+                  <div key={reward.title} className="reward-item">
+                    <div>
+                      <strong>{reward.title}</strong>
+                      <small>{reward.value}</small>
+                    </div>
+                    <span>{reward.status}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </section>
